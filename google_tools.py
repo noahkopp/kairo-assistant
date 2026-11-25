@@ -57,7 +57,7 @@ def _load_or_sign_in():
             _find_downloaded_credentials()
         if not CREDENTIALS_FILE.exists():
             raise FileNotFoundError(
-                "Gmail isn't set up yet. To connect it, run: ./kairo.command --google"
+                "Gmail isn't set up yet. To connect it, run kairo.command --google (kairo.cmd --google on Windows) in the Kairo folder."
             )
         flow = InstalledAppFlow.from_client_secrets_file(str(CREDENTIALS_FILE), SCOPES)
         creds = flow.run_local_server(port=0, authorization_prompt_message="")  # opens the browser to sign in

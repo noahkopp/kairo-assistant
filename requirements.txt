@@ -3,4 +3,4 @@ pyaudio
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
-pyobjc-framework-EventKit
+pyobjc-framework-EventKit; sys_platform == "darwin"

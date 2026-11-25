@@ -6,9 +6,9 @@ project. This opens each Google page for you and tells you what to click.
   .venv/bin/python google_setup.py
 """
 import shutil
-import subprocess
 import sys
 import time
+import webbrowser
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -23,7 +23,7 @@ def step(n, title, url, lines):
     for line in lines:
         print(f"   - {line}")
     input(f"\n   Press Enter to open the page...")
-    subprocess.run(["open", url])
+    webbrowser.open(url)
     input("   When you're done on that page, press Enter here. ")
 
 
@@ -98,4 +98,4 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\nStopped. Run ./kairo.command --google anytime to finish.")
+        print("\nStopped. Run kairo.command --google (kairo.cmd --google on Windows) anytime to finish.")

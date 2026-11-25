@@ -7,6 +7,7 @@ Say "goodbye" and it sleeps until you say "Kairo" again. Say "shut down" (or pre
 to close it completely.
 """
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -59,12 +60,44 @@ def wake_request(text):
     return None
 
 
+SYSTEM = platform.system()          # "Darwin" (Mac), "Windows", or "Linux"
+
+# Windows: built-in speech, preferring a British voice (e.g. Microsoft George/Hazel). Reads stdin.
+WIN_SPEAK = (
+    "Add-Type -AssemblyName System.Speech; "
+    "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer; "
+    "$v = $s.GetInstalledVoices() | ForEach-Object { $_.VoiceInfo } | "
+    "Where-Object { $_.Culture.Name -eq 'en-GB' } | Select-Object -First 1; "
+    "if ($v) { $s.SelectVoice($v.Name) }; $s.Rate = 1; "
+    "$s.Speak([Console]::In.ReadToEnd())"
+)
+
+
 def pick_voice():
-    out = subprocess.run(["say", "-v", "?"], capture_output=True, text=True).stdout
-    installed = {re.split(r"\s{2,}", line.strip())[0] for line in out.splitlines() if line.strip()}
-    for v in VOICE_PREFS:
-        if v and v in installed:
-            return v
+    """The voice name shown at startup; on a Mac, also the `say` voice to use."""
+    if SYSTEM == "Darwin":
+        out = subprocess.run(["say", "-v", "?"], capture_output=True, text=True).stdout
+        installed = {re.split(r"\s{2,}", line.strip())[0] for line in out.splitlines() if line.strip()}
+        for v in VOICE_PREFS:
+            if v and v in installed:
+                return v
+        return None
+    if SYSTEM == "Windows":
+        return "Windows (British if installed)"
+    return "espeak-ng (British)" if shutil.which("espeak-ng") or shutil.which("espeak") else None
+
+
+def speech_command():
+    """The command that reads text from stdin and speaks it, for this system."""
+    if SYSTEM == "Darwin":
+        return ["say", "-r", RATE] + (["-v", VOICE] if VOICE else [])
+    if SYSTEM == "Windows":
+        return ["powershell", "-NoProfile", "-Command", WIN_SPEAK]
+    engine = shutil.which("espeak-ng") or shutil.which("espeak")
+    if engine:
+        return [engine, "-v", "en-gb", "-s", "170", "--stdin"]
+    if shutil.which("spd-say"):
+        return ["spd-say", "-w", "-e", "-l", "en"]
     return None
 
 
@@ -104,8 +137,15 @@ def speak(text):
     clean = re.sub(r"```.*?```", " (I've put some code on screen.) ", text, flags=re.S)
     clean = re.sub(r"[*_#`>|]", "", clean)
     clean = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", clean)          # [link](url) -> link
-    cmd = ["say", "-r", RATE] + (["-v", VOICE] if VOICE else [])
-    proc = subprocess.Popen(cmd + [clean])
+    cmd = speech_command()
+    if not cmd:                                   # no speech engine: text only
+        return None
+    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, text=True, encoding="utf-8")
+    try:
+        proc.stdin.write(clean)
+        proc.stdin.close()
+    except OSError:
+        pass
     caught = {}
 
     def listen_for_interrupt():
@@ -150,8 +190,9 @@ def speak(text):
 def ask_kairo(message, first):
     now = datetime.now().astimezone().strftime("%A, %B %d, %Y, %I:%M %p %Z")
     message = f"[Now: {now}. Spoken by the user; may contain speech-to-text mistakes.]\n{message}"
-    cmd = ["copilot", "-p", message, "--agent=kairo", "-s", "--no-color",
-           "--allow-tool=read", "--allow-tool=write(memory.md)", "--allow-tool=shell(./kt:*)"]
+    cmd = [shutil.which("copilot") or "copilot", "-p", message, "--agent=kairo", "-s", "--no-color",
+           "--allow-tool=read", "--allow-tool=write(memory.md)", "--allow-tool=shell(./kt:*)", "--allow-tool=shell(.\\kt:*)",
+           "--allow-tool=shell(kt:*)"]
     if os.environ.get("KAIRO_MODEL"):
         cmd.append(f"--model={os.environ['KAIRO_MODEL']}")
     if not first:
@@ -178,7 +219,7 @@ def sync_memory():
 
 def main():
     if not shutil.which("copilot"):
-        sys.exit("Copilot CLI isn't installed. Run: brew install copilot-cli")
+        sys.exit("GitHub Copilot CLI isn't installed. Run the Kairo installer again (see README).")
     rec = sr.Recognizer()
     rec.pause_threshold = SILENCE
     rec.dynamic_energy_threshold = True
