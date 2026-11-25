@@ -1,0 +1,9 @@
+.venv/
+.kairo-started
+__pycache__/
+.DS_Store
+credentials.json
+token.json
+client_secret_*.json
+memory.backup.md
+memory.md

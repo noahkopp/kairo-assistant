@@ -1,0 +1,50 @@
+#!/bin/bash
+# Kairo installer for macOS.
+#   curl -fsSL https://raw.githubusercontent.com/noahkopp/kairo-assistant/main/install.sh | bash
+set -e
+REPO="https://github.com/noahkopp/kairo-assistant.git"
+DIR="${KAIRO_DIR:-$HOME/kairo-assistant}"
+
+say_step() { printf "\n\033[1m==> %s\033[0m\n" "$1"; }
+
+[ "$(uname)" = "Darwin" ] || { echo "Kairo runs on macOS only."; exit 1; }
+
+say_step "Checking Homebrew"
+if ! command -v brew >/dev/null; then
+  echo "Installing Homebrew (Mac's package manager). It may ask for your Mac password."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" </dev/tty
+  eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
+fi
+
+say_step "Installing tools (Python, GitHub Copilot CLI, audio)"
+brew list python@3.12 >/dev/null 2>&1 || brew install python@3.12
+brew list portaudio   >/dev/null 2>&1 || brew install portaudio
+command -v copilot >/dev/null || brew install copilot-cli
+command -v git >/dev/null || brew install git
+
+say_step "Downloading Kairo to $DIR"
+if [ -d "$DIR/.git" ]; then
+  git -C "$DIR" pull -q --ff-only
+else
+  git clone -q "$REPO" "$DIR"
+fi
+chmod +x "$DIR/kairo.command" "$DIR/kt"
+
+say_step "Setting up Kairo"
+"$DIR/kairo.command" --setup-only </dev/tty
+
+say_step "Sign in to GitHub Copilot (Kairo's brain)"
+echo "You need a GitHub account with Copilot; the free plan works."
+echo "Copilot will open now. Sign in if it asks, choose to TRUST this folder, then type /exit"
+read -r -p "Press Enter to continue..." </dev/tty
+( cd "$DIR" && copilot </dev/tty ) || true
+
+say_step "Gmail and Google Calendar (optional)"
+read -r -p "Connect Gmail and Google Calendar now? Takes about 5 minutes. [y/N] " yn </dev/tty
+if [[ "$yn" =~ ^[Yy] ]]; then
+  "$DIR/kairo.command" --google </dev/tty || true
+else
+  echo "Skipped. Connect it later with:  $DIR/kairo.command --google"
+fi
+
+printf "\n\033[1mKairo is installed.\033[0m Press Cmd+Space, type Kairo, press Enter to start talking.\n"
