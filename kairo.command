@@ -7,6 +7,18 @@ cd "$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")")"
 if [ -z "$1" ] && [ -x .venv/bin/python ] && .venv/bin/python launch.py; then
   echo "Kairo is already running; I woke it up."; exit 0
 fi
+# Auto-update: get the newest Kairo from GitHub (quietly; skipped if offline).
+# Your memory, sign-ins and settings aren't part of the download, so they're never touched.
+if [ -z "$KAIRO_UPDATED" ] && [ -d .git ]; then
+  export KAIRO_UPDATED=1
+  before="$(git rev-parse HEAD 2>/dev/null)"
+  GIT_TERMINAL_PROMPT=0 git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=5 \
+    pull -q --ff-only >/dev/null 2>&1 || true
+  if [ "$(git rev-parse HEAD 2>/dev/null)" != "$before" ]; then
+    echo "Kairo updated to the newest version."
+    exec "$PWD/kairo.command" "$@"      # run the updated launcher
+  fi
+fi
 if [ "$(uname)" = "Darwin" ]; then
   command -v brew >/dev/null || { echo "Install Homebrew first: https://brew.sh"; exit 1; }
   command -v copilot >/dev/null || brew install copilot-cli

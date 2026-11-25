@@ -68,7 +68,7 @@ Kairo saves facts about you, and lessons from your corrections, in `memory.md`. 
 ## Later
 
 - **Connect Gmail later:** run `kairo.command --google` in the Kairo folder. On Windows, run `kairo.cmd --google`.
-- **Update Kairo:** run the install line again.
+- **Updates are automatic.** Each time Kairo starts, it gets the newest version first. Your memory and sign-ins are never touched.
 - **Uninstall:** delete the `kairo-assistant` folder in your home folder. Then remove the launcher:
   - **Mac:** delete `/Applications/Kairo.app` and `~/Library/Services/Start Kairo.workflow`.
   - **Windows:** delete the Kairo Start menu entry.
