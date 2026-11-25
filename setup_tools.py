@@ -49,16 +49,13 @@ def install_mac_app():
     import tempfile
 
     APP = Path("/Applications/Kairo.app")
+    # No "tell application" here: macOS blocks that without extra permission. `open` needs none.
     SCRIPT = f'''on run
-        set isRunning to (do shell script "cd '{HERE}' && (.venv/bin/python launch.py && echo yes || echo no)")
-        tell application "Terminal"
-            activate
-            if isRunning is "no" then do script "cd {HERE} && ./kairo.command"
-        end tell
+        do shell script "cd '{HERE}' && (.venv/bin/python launch.py && open -a Terminal || open -a Terminal '{HERE}/kairo.command')"
     end run
     '''
     try:
-        marker = APP / "Contents" / "Resources" / "kairo-launcher-v4"
+        marker = APP / "Contents" / "Resources" / "kairo-launcher-v5"
         if not marker.exists():
             with tempfile.TemporaryDirectory() as tmp:
                 src = Path(tmp) / "kairo.applescript"
