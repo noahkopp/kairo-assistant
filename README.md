@@ -27,7 +27,7 @@ The installer walks you through everything, in about 10 minutes:
 
 ## Use it
 
-- **Start Kairo with the hotkey,** which the installer sets up for you. If Kairo is already running and asleep, the same key wakes it.
+- **Start Kairo with the hotkey,** which the installer sets up for you. If Kairo is already running and asleep, the same key wakes it. Kairo runs minimized and says "Ready." To see what it's hearing, click its Terminal window in the Dock (on Windows, the taskbar).
   - **Mac:** Control+Option+K
   - **Windows and Linux:** Ctrl+Alt+K
 - **Or start it from your apps:**

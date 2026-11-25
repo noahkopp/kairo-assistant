@@ -237,6 +237,8 @@ def main():
 
     print(f"\nKairo is listening (voice: {VOICE or 'default'}). Talk over it to interrupt. "
           "Say 'goodbye' to pause, 'shut down' to close.\n")
+    if os.environ.get("KAIRO_ANNOUNCE"):
+        speak("Ready.")
     first = True
     pending = None                       # something the user said while interrupting Kairo
     if not (HERE / ".kairo-started").exists():

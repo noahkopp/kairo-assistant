@@ -51,11 +51,11 @@ def install_mac_app():
     APP = Path("/Applications/Kairo.app")
     # No "tell application" here: macOS blocks that without extra permission. `open` needs none.
     SCRIPT = f'''on run
-        do shell script "cd '{HERE}' && (.venv/bin/python launch.py && open -a Terminal || open -a Terminal '{HERE}/kairo.command')"
+        do shell script "cd '{HERE}' && (.venv/bin/python launch.py || open -g -a Terminal '{HERE}/kairo-background.command')"
     end run
     '''
     try:
-        marker = APP / "Contents" / "Resources" / "kairo-launcher-v5"
+        marker = APP / "Contents" / "Resources" / "kairo-launcher-v6"
         if not marker.exists():
             with tempfile.TemporaryDirectory() as tmp:
                 src = Path(tmp) / "kairo.applescript"
@@ -88,7 +88,7 @@ def install_windows_shortcut():
     link = start_menu / "Kairo.lnk"
     ps = (f"$s = (New-Object -ComObject WScript.Shell).CreateShortcut('{link}'); "
           f"$s.TargetPath = '{HERE / 'kairo.cmd'}'; $s.WorkingDirectory = '{HERE}'; "
-          f"$s.Description = 'Kairo voice assistant'; $s.Hotkey = 'CTRL+ALT+K'; $s.Save()")
+          f"$s.Description = 'Kairo voice assistant'; $s.Hotkey = 'CTRL+ALT+K'; $s.WindowStyle = 7; $s.Save()")
     r = subprocess.run(["powershell", "-NoProfile", "-Command", ps], capture_output=True, text=True)
     if r.returncode == 0:
         print("Added Kairo to the Start menu. Hotkey: Ctrl+Alt+K (or press the Windows key and type Kairo).")
