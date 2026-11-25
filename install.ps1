@@ -45,12 +45,16 @@ Read-Host "Press Enter to continue"
 Push-Location $Dir
 try { copilot } finally { Pop-Location }
 
+if (Test-Path (Join-Path $Dir "token.json")) {
+    Write-Host "`nGmail and Google Calendar are already connected."
+} else {
 Step "Gmail and Google Calendar (optional)"
 $yn = Read-Host "Connect Gmail and Google Calendar now? Takes about 5 minutes. [y/N]"
 if ($yn -match '^[Yy]') {
     & (Join-Path $Dir "kairo.cmd") --google
 } else {
     Write-Host "Skipped. Connect it later by running: $Dir\kairo.cmd --google"
+}
 }
 
 Write-Host "`nKairo is installed. Press the Windows key, type Kairo, press Enter to start talking." -ForegroundColor Green

@@ -55,12 +55,16 @@ echo "Copilot will open now. Sign in if it asks, choose to TRUST this folder, th
 read -r -p "Press Enter to continue..." </dev/tty
 ( cd "$DIR" && copilot </dev/tty ) || true
 
+if [ -f "$DIR/token.json" ]; then
+  echo; echo "Gmail and Google Calendar are already connected."
+else
 say_step "Gmail and Google Calendar (optional)"
 read -r -p "Connect Gmail and Google Calendar now? Takes about 5 minutes. [y/N] " yn </dev/tty
 if [[ "$yn" =~ ^[Yy] ]]; then
   "$DIR/kairo.command" --google </dev/tty || true
 else
   echo "Skipped. Connect it later with:  $DIR/kairo.command --google"
+fi
 fi
 
 if [ "$(uname)" = "Darwin" ]; then
