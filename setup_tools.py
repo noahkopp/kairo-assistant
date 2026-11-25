@@ -58,7 +58,7 @@ def install_mac_app():
     end run
     '''
     try:
-        marker = APP / "Contents" / "Resources" / "kairo-launcher-v3"
+        marker = APP / "Contents" / "Resources" / "kairo-launcher-v4"
         if not marker.exists():
             with tempfile.TemporaryDirectory() as tmp:
                 src = Path(tmp) / "kairo.applescript"
@@ -115,6 +115,15 @@ Categories=Utility;
     print("Added Kairo to your apps menu: search for Kairo to start it.")
 
 
+def register_mac_app():
+    """Make sure macOS (Spotlight, `open`, the hotkey) knows about Kairo.app."""
+    app = "/Applications/Kairo.app"
+    lsreg = ("/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework"
+             "/Support/lsregister")
+    subprocess.run([lsreg, "-f", app], capture_output=True)
+    subprocess.run(["mdimport", app], capture_output=True)
+
+
 def install_mac_hotkey():
     """Control+Option+K anywhere -> opens Kairo.app (a Quick Action with a keyboard shortcut)."""
     import plistlib
@@ -133,7 +142,7 @@ def install_mac_hotkey():
         "AMProvides": {"Container": "List", "Types": ["com.apple.cocoa.string"]},
         "ActionBundlePath": "/System/Library/Automator/Run Shell Script.action",
         "ActionName": "Run Shell Script",
-        "ActionParameters": {"COMMAND_STRING": "open -a Kairo", "CheckedForUserDefaultShell": True,
+        "ActionParameters": {"COMMAND_STRING": "open /Applications/Kairo.app", "CheckedForUserDefaultShell": True,
                              "inputMethod": 0, "shell": "/bin/bash", "source": ""},
         "BundleIdentifier": "com.apple.RunShellScript",
         "CFBundleVersion": "2.0.3",
@@ -237,6 +246,7 @@ if SYSTEM != "Windows":
 
 if SYSTEM == "Darwin":
     install_mac_app()
+    register_mac_app()
     try:
         install_mac_hotkey()
     except Exception as e:
