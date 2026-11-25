@@ -27,7 +27,10 @@ The installer walks you through everything, in about 10 minutes:
 
 ## Use it
 
-- **Start Kairo:**
+- **Start Kairo with the hotkey,** which the installer sets up for you. If Kairo is already running and asleep, the same key wakes it.
+  - **Mac:** Control+Option+K
+  - **Windows and Linux:** Ctrl+Alt+K
+- **Or start it from your apps:**
   - **Mac:** press Cmd+Space, type **Kairo**, and press Enter.
   - **Windows:** press the Windows key, type **Kairo**, and press Enter.
   - **Linux:** search your apps for **Kairo**.
@@ -35,7 +38,7 @@ The installer walks you through everything, in about 10 minutes:
   Then just talk.
 - Kairo sends your message when you pause, and answers out loud.
 - **Interrupt** by talking over it. Say "stop" or "wait" and it goes quiet.
-- Say **"goodbye"** and it sleeps. Say **"Kairo"** to wake it.
+- Say **"goodbye"** and it sleeps. Say **"Kairo"**, or press the hotkey, to wake it.
 - Say **"shut down"** to close it.
 
 The first time you talk to it, Kairo asks a few questions to get to know you.
@@ -66,6 +69,6 @@ Kairo saves facts about you, and lessons from your corrections, in `memory.md`. 
 - **Connect Gmail later:** run `kairo.command --google` in the Kairo folder. On Windows, run `kairo.cmd --google`.
 - **Update Kairo:** run the install line again.
 - **Uninstall:** delete the `kairo-assistant` folder in your home folder. Then remove the launcher:
-  - **Mac:** delete `/Applications/Kairo.app`.
+  - **Mac:** delete `/Applications/Kairo.app` and `~/Library/Services/Start Kairo.workflow`.
   - **Windows:** delete the Kairo Start menu entry.
-  - **Linux:** delete `~/.local/share/applications/kairo.desktop`.
+  - **Linux:** delete `~/.local/share/applications/kairo.desktop`, and remove the Kairo shortcut in your keyboard settings.

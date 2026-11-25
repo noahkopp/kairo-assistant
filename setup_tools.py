@@ -50,7 +50,7 @@ def install_mac_app():
 
     APP = Path("/Applications/Kairo.app")
     SCRIPT = f'''on run
-        set isRunning to (do shell script "pgrep -f 'python talk.py' >/dev/null && echo yes || echo no")
+        set isRunning to (do shell script "cd '{HERE}' && (.venv/bin/python launch.py && echo yes || echo no)")
         tell application "Terminal"
             activate
             if isRunning is "no" then do script "cd {HERE} && ./kairo.command"
@@ -58,7 +58,7 @@ def install_mac_app():
     end run
     '''
     try:
-        marker = APP / "Contents" / "Resources" / "kairo-launcher-v2"
+        marker = APP / "Contents" / "Resources" / "kairo-launcher-v3"
         if not marker.exists():
             with tempfile.TemporaryDirectory() as tmp:
                 src = Path(tmp) / "kairo.applescript"
@@ -91,10 +91,10 @@ def install_windows_shortcut():
     link = start_menu / "Kairo.lnk"
     ps = (f"$s = (New-Object -ComObject WScript.Shell).CreateShortcut('{link}'); "
           f"$s.TargetPath = '{HERE / 'kairo.cmd'}'; $s.WorkingDirectory = '{HERE}'; "
-          f"$s.Description = 'Kairo voice assistant'; $s.Save()")
+          f"$s.Description = 'Kairo voice assistant'; $s.Hotkey = 'CTRL+ALT+K'; $s.Save()")
     r = subprocess.run(["powershell", "-NoProfile", "-Command", ps], capture_output=True, text=True)
     if r.returncode == 0:
-        print("Added Kairo to the Start menu: press the Windows key, type Kairo, press Enter.")
+        print("Added Kairo to the Start menu. Hotkey: Ctrl+Alt+K (or press the Windows key and type Kairo).")
     else:
         print(f"Couldn't add a Start menu entry. Start Kairo by double-clicking kairo.cmd in {HERE}")
 
@@ -115,9 +115,109 @@ Categories=Utility;
     print("Added Kairo to your apps menu: search for Kairo to start it.")
 
 
+def install_mac_hotkey():
+    """Control+Option+K anywhere -> opens Kairo.app (a Quick Action with a keyboard shortcut)."""
+    import plistlib
+    wf = Path.home() / "Library" / "Services" / "Start Kairo.workflow" / "Contents"
+    wf.mkdir(parents=True, exist_ok=True)
+    plistlib.dump({"NSServices": [{
+        "NSMenuItem": {"default": "Start Kairo"},
+        "NSMessage": "runWorkflowAsService",
+    }]}, (wf / "Info.plist").open("wb"))
+    action = {
+        "AMAccepts": {"Container": "List", "Optional": True, "Types": ["com.apple.cocoa.string"]},
+        "AMActionVersion": "2.0.3",
+        "AMApplication": ["Automator"],
+        "AMParameterProperties": {"COMMAND_STRING": {}, "CheckedForUserDefaultShell": {},
+                                  "inputMethod": {}, "shell": {}, "source": {}},
+        "AMProvides": {"Container": "List", "Types": ["com.apple.cocoa.string"]},
+        "ActionBundlePath": "/System/Library/Automator/Run Shell Script.action",
+        "ActionName": "Run Shell Script",
+        "ActionParameters": {"COMMAND_STRING": "open -a Kairo", "CheckedForUserDefaultShell": True,
+                             "inputMethod": 0, "shell": "/bin/bash", "source": ""},
+        "BundleIdentifier": "com.apple.RunShellScript",
+        "CFBundleVersion": "2.0.3",
+        "CanShowSelectedItemsWhenRun": False,
+        "CanShowWhenRun": True,
+        "Category": ["AMCategoryUtilities"],
+        "Class Name": "RunShellScriptAction",
+        "InputUUID": "7D3A1C2E-0B1F-4E5A-9C8D-1A2B3C4D5E61",
+        "Keywords": ["Shell", "Script", "Command", "Run", "Unix"],
+        "OutputUUID": "7D3A1C2E-0B1F-4E5A-9C8D-1A2B3C4D5E62",
+        "UUID": "7D3A1C2E-0B1F-4E5A-9C8D-1A2B3C4D5E63",
+        "UnlocalizedApplications": ["Automator"],
+        "arguments": {},
+        "isViewVisible": 1,
+        "location": "309.000000:253.000000",
+        "nibPath": "/System/Library/Automator/Run Shell Script.action/Contents/Resources/Base.lproj/main.nib",
+    }
+    plistlib.dump({
+        "AMApplicationBuild": "523",
+        "AMApplicationVersion": "2.10",
+        "AMDocumentVersion": "2",
+        "actions": [{"action": action, "isViewVisible": 1}],
+        "connectors": {},
+        "workflowMetaData": {
+            "serviceInputTypeIdentifier": "com.apple.Automator.nothing",
+            "serviceOutputTypeIdentifier": "com.apple.Automator.nothing",
+            "serviceProcessesInput": 0,
+            "workflowTypeIdentifier": "com.apple.Automator.servicesMenu",
+        },
+    }, (wf / "document.wflow").open("wb"))
+    key = "(null) - Start Kairo - runWorkflowAsService"
+    subprocess.run(["defaults", "write", "pbs", "NSServicesStatus", "-dict-add", key,
+                    '{ "enabled_context_menu" = 1; "enabled_services_menu" = 1; '
+                    '"key_equivalent" = "^~k"; }'], capture_output=True)
+    subprocess.run(["/System/Library/CoreServices/pbs", "-flush"], capture_output=True)
+    subprocess.run(["/System/Library/CoreServices/pbs", "-update"], capture_output=True)
+    print("Hotkey: Control+Option+K starts Kairo (or wakes it). If it doesn't work right away, "
+          "log out and back in once.")
+
+
+def install_linux_hotkey():
+    """Ctrl+Alt+K on GNOME-based desktops (Ubuntu, Fedora). Others: set it by hand."""
+    script = HERE / "kairo-hotkey.sh"
+    script.write_text(f"""#!/bin/bash
+# Ctrl+Alt+K: wake Kairo if it's running, otherwise open it in a terminal.
+cd "{HERE}"
+.venv/bin/python launch.py && exit 0
+for t in gnome-terminal x-terminal-emulator konsole xfce4-terminal xterm; do
+  if command -v "$t" >/dev/null; then
+    if [ "$t" = gnome-terminal ]; then exec gnome-terminal -- "{HERE}/kairo.command"; fi
+    exec "$t" -e "{HERE}/kairo.command"
+  fi
+done
+""")
+    script.chmod(0o755)
+    if not shutil.which("gsettings"):
+        print(f"To add a hotkey, bind Ctrl+Alt+K to {script} in your desktop's keyboard settings.")
+        return
+    base = "org.gnome.settings-daemon.plugins.media-keys"
+    path = "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/kairo/"
+    try:
+        cur = subprocess.run(["gsettings", "get", base, "custom-keybindings"],
+                             capture_output=True, text=True, check=True).stdout.strip()
+        items = [] if cur.startswith("@") else [x.strip(" '") for x in cur.strip("[]").split(",") if x.strip()]
+        if path not in items:
+            items.append(path)
+            subprocess.run(["gsettings", "set", base, "custom-keybindings",
+                            "[" + ", ".join(f"'{x}'" for x in items) + "]"], check=True)
+        schema = f"{base}.custom-keybinding:{path}"
+        for k, v in (("name", "Kairo"), ("command", str(script)), ("binding", "<Control><Alt>k")):
+            subprocess.run(["gsettings", "set", schema, k, v], check=True)
+        print("Hotkey: Ctrl+Alt+K starts Kairo (or wakes it).")
+    except Exception:
+        print(f"To add a hotkey, bind Ctrl+Alt+K to {script} in your desktop's keyboard settings.")
+
+
 if SYSTEM == "Darwin":
     install_mac_app()
+    try:
+        install_mac_hotkey()
+    except Exception as e:
+        print(f"Couldn't set up the hotkey ({e}). Start Kairo with Cmd+Space, Kairo.")
 elif SYSTEM == "Windows":
     install_windows_shortcut()
 else:
     install_linux_desktop_entry()
+    install_linux_hotkey()

@@ -217,7 +217,13 @@ def sync_memory():
     print("Saved what I learned to GitHub." if ok else "Saved what I learned (GitHub upload will retry next time).")
 
 
+PID_FILE = HERE / ".kairo.pid"
+WAKE_FILE = HERE / ".wake"           # touched by the hotkey (launch.py) to wake Kairo up
+
+
 def main():
+    PID_FILE.write_text(str(os.getpid()))
+    WAKE_FILE.unlink(missing_ok=True)
     if not shutil.which("copilot"):
         sys.exit("GitHub Copilot CLI isn't installed. Run the Kairo installer again (see README).")
     rec = sr.Recognizer()
@@ -248,11 +254,23 @@ def main():
                 heard, pending, interrupted = pending, None, True
             else:
                 with mic as source:
-                    print("Sleeping. Say 'Kairo' to wake me..." if asleep else "Listening...")
+                    print("Sleeping. Say 'Kairo' (or press the hotkey) to wake me..." if asleep else "Listening...")
+                    audio = None
                     try:
-                        audio = rec.listen(source, timeout=None, phrase_time_limit=90)
+                        while audio is None:
+                            if WAKE_FILE.exists():                      # hotkey pressed
+                                WAKE_FILE.unlink(missing_ok=True)
+                                break
+                            try:
+                                audio = rec.listen(source, timeout=2, phrase_time_limit=90)
+                            except sr.WaitTimeoutError:
+                                continue
                     except KeyboardInterrupt:
                         break
+                if audio is None:                                        # woken by the hotkey
+                    asleep = False
+                    pending = speak("Yes?")
+                    continue
                 try:
                     heard = rec.recognize_google(audio)
                 except sr.UnknownValueError:
@@ -295,6 +313,7 @@ def main():
             print(f"Kairo: {reply}\n")
             pending = speak(reply)
     finally:
+        PID_FILE.unlink(missing_ok=True)
         sync_memory()
 
 

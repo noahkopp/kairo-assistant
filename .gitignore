@@ -7,3 +7,6 @@ token.json
 client_secret_*.json
 memory.backup.md
 memory.md
+.kairo.pid
+.wake
+kairo-hotkey.sh
