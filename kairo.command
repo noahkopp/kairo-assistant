@@ -3,7 +3,7 @@
 #   ./kairo.command            start talking
 #   ./kairo.command --google   connect Gmail and Google Calendar
 #   ./kairo.command --setup-only
-cd "$(dirname "$0")"
+cd "$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")")"
 if [ -z "$1" ] && [ -x .venv/bin/python ] && .venv/bin/python launch.py; then
   echo "Kairo is already running; I woke it up."; exit 0
 fi

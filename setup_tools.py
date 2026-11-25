@@ -210,6 +210,31 @@ done
         print(f"To add a hotkey, bind Ctrl+Alt+K to {script} in your desktop's keyboard settings.")
 
 
+def install_terminal_command():
+    """Lets you type `kairo` in any Terminal window (Mac/Linux)."""
+    target = HERE / "kairo.command"
+    for d in (Path("/opt/homebrew/bin"), Path("/usr/local/bin"), Path.home() / ".local" / "bin"):
+        if d == Path.home() / ".local" / "bin":
+            d.mkdir(parents=True, exist_ok=True)
+        if d.is_dir() and os.access(d, os.W_OK):
+            link = d / "kairo"
+            if link.is_symlink() or link.exists():
+                link.unlink()
+            link.symlink_to(target)
+            if d == Path.home() / ".local" / "bin" and str(d) not in os.environ.get("PATH", ""):
+                rc = Path.home() / (".zshrc" if SYSTEM == "Darwin" else ".bashrc")
+                with rc.open("a") as f:
+                    f.write('\nexport PATH="$HOME/.local/bin:$PATH"   # added by Kairo\n')
+            print("Terminal command: type kairo to start Kairo.")
+            return
+
+
+if SYSTEM != "Windows":
+    try:
+        install_terminal_command()
+    except Exception:
+        pass
+
 if SYSTEM == "Darwin":
     install_mac_app()
     try:

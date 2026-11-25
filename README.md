@@ -34,6 +34,7 @@ The installer walks you through everything, in about 10 minutes:
   - **Mac:** press Cmd+Space, type **Kairo**, and press Enter.
   - **Windows:** press the Windows key, type **Kairo**, and press Enter.
   - **Linux:** search your apps for **Kairo**.
+- **Or type `kairo` in Terminal** (Mac and Linux).
 
   Then just talk.
 - Kairo sends your message when you pause, and answers out loud.
