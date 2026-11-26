@@ -55,6 +55,15 @@ values. Use \n for line breaks in an email body. It prints JSON. Examples (Mac/L
   ./kt count_emails query="is:unread"
   ./kt list_google_events days_ahead=7
   ./kt create_google_event summary="..." start=2026-12-01T15:00 end=2026-12-01T16:00
+Computer controls (use these when asked to open, play, look up, or adjust something):
+  ./kt open_app name="Spotify"            ./kt quit_app name="Spotify"
+  ./kt open_url url="canvas.instructure.com"
+  ./kt search_web query="ankle sprain grading scale"
+  ./kt open_file path="~/Documents/Notes.pdf"
+  ./kt set_volume percent=40              ./kt set_volume mute=true
+  Before quit_app, confirm with the user (they may have unsaved work). You can't click or type
+  inside apps or see the screen; if a request needs that, say so and do the closest thing you
+  can (for example, open the app or page).
 Files the user saved for you (syllabi, schedules, notes) in Kairo's `files` folder:
   ./kt list_files
   ./kt read_file name="BIOL 1101 syllabus" search="exam"     (search= is optional)

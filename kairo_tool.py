@@ -37,6 +37,15 @@ TOOLS = {
     "list_google_events": lambda days_ahead=7: g().list_events(days_ahead),
     "create_google_event": lambda summary, start, end, description="", location="":
         g().create_event(summary, start, end, description, location),
+    # Computer controls: every system
+    "open_app": lambda name: __import__("computer").open_app(name),
+    "quit_app": lambda name: __import__("computer").quit_app(name),
+    "open_url": lambda url: __import__("computer").open_url(url),
+    "search_web": lambda query: __import__("computer").search_web(query),
+    "open_file": lambda path: __import__("computer").open_file(path),
+    "set_volume": lambda percent=None, mute=None: __import__("computer").set_volume(
+        None if percent is None else int(percent),
+        None if mute is None else str(mute).lower() in ("1", "true", "yes")),
     # Your files folder (syllabi, schedules, notes): every system
     "list_files": lambda folder="": __import__("kairo_files").list_files(folder),
     "read_file": lambda name, search="": __import__("kairo_files").read_file(name, search),
