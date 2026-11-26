@@ -19,6 +19,7 @@ if not exist .venv\Scripts\python.exe (
 )
 .venv\Scripts\python.exe -m pip install -q --disable-pip-version-check -r requirements.txt || (echo Could not install Kairo's Python packages. & pause & exit /b 1)
 if "%~1"=="--google" (.venv\Scripts\python.exe google_setup.py & exit /b)
+if "%~1"=="--computer-control" (.venv\Scripts\python.exe control_setup.py %2 & exit /b)
 .venv\Scripts\python.exe setup_tools.py
 if "%~1"=="--setup-only" exit /b 0
 .venv\Scripts\python.exe talk.py

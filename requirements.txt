@@ -6,3 +6,5 @@ google-auth-oauthlib
 pyobjc-framework-EventKit; sys_platform == "darwin"
 pypdf
 python-docx
+pyautogui
+pillow

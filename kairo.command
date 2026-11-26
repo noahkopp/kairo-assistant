@@ -35,6 +35,7 @@ fi
   [ "$(uname)" = "Darwin" ] || echo "On Ubuntu/Debian, first run: sudo apt install portaudio19-dev python3-dev espeak-ng"
   exit 1; }
 if [ "$1" = "--google" ]; then exec .venv/bin/python google_setup.py; fi
+if [ "$1" = "--computer-control" ]; then exec .venv/bin/python control_setup.py "$2"; fi
 .venv/bin/python setup_tools.py
 [ "$1" = "--setup-only" ] && exit 0
 exec .venv/bin/python talk.py

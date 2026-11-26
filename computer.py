@@ -102,3 +102,93 @@ def set_volume(percent=None, mute=None):
         else:
             raise RuntimeError("Volume control needs pactl or amixer.")
     return {"volume": percent, "muted": mute}
+
+
+# ------------------------------------------------- full control (opt-in) --
+# Seeing the screen, clicking, typing. Off unless the user turns it on with
+#   kairo.command --computer-control on     (kairo.cmd on Windows)
+import json
+
+HERE = Path(__file__).resolve().parent
+SETTINGS = HERE / "settings.json"
+SCREEN = HERE / "files" / ".screen.png"
+
+
+def _settings():
+    try:
+        return json.loads(SETTINGS.read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def control_enabled():
+    return bool(_settings().get("computer_control"))
+
+
+def set_control(on):
+    s = _settings()
+    s["computer_control"] = bool(on)
+    SETTINGS.write_text(json.dumps(s, indent=2))
+    return s
+
+
+def _require():
+    if not control_enabled():
+        raise RuntimeError("Full computer control is off. The user can turn it on by running "
+                           "kairo.command --computer-control on (kairo.cmd on Windows) in Kairo's folder.")
+    import pyautogui
+    pyautogui.FAILSAFE = True          # slam the mouse into a screen corner to stop Kairo
+    pyautogui.PAUSE = 0.15
+    return pyautogui
+
+
+def screenshot():
+    """Capture the screen at click-coordinate size; view the saved image to see it."""
+    pg = _require()
+    w, h = pg.size()
+    img = pg.screenshot()
+    if img.size != (w, h):                       # Retina: shrink so pixels = click points
+        img = img.resize((w, h))
+    SCREEN.parent.mkdir(exist_ok=True)
+    img.save(SCREEN)
+    x, y = pg.position()
+    return {"image": str(SCREEN.relative_to(HERE)), "width": w, "height": h, "mouse": [x, y],
+            "note": "Open this image with your file viewer to see the screen. Coordinates in it "
+                    "are the ones to click."}
+
+
+def click(x, y, button="left", clicks=1):
+    pg = _require()
+    pg.click(int(x), int(y), clicks=int(clicks), button=button)
+    return {"clicked": [int(x), int(y)], "button": button, "clicks": int(clicks)}
+
+
+def type_text(text):
+    pg = _require()
+    if SYSTEM == "Darwin" or any(ord(c) > 127 for c in text):
+        # paste instead of typing key by key: faster and handles any character
+        import subprocess as sp
+        if SYSTEM == "Darwin":
+            sp.run(["pbcopy"], input=text, text=True)
+            pg.hotkey("command", "v")
+        else:
+            pg.write(text, interval=0.01)
+    else:
+        pg.write(text, interval=0.01)
+    return {"typed": len(text)}
+
+
+def press(keys):
+    """Press a key or combination: 'enter', 'tab', 'esc', 'cmd+l', 'ctrl+t', 'down'."""
+    pg = _require()
+    names = [k.strip().lower().replace("cmd", "command").replace("opt", "option")
+             for k in keys.split("+")]
+    pg.hotkey(*names) if len(names) > 1 else pg.press(names[0])
+    return {"pressed": keys}
+
+
+def scroll(direction="down", amount=5):
+    pg = _require()
+    n = int(amount) * (1 if direction == "up" else -1)
+    pg.scroll(n * 100 if SYSTEM == "Darwin" else n * 120)
+    return {"scrolled": direction, "amount": int(amount)}

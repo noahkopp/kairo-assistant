@@ -46,6 +46,12 @@ TOOLS = {
     "set_volume": lambda percent=None, mute=None: __import__("computer").set_volume(
         None if percent is None else int(percent),
         None if mute is None else str(mute).lower() in ("1", "true", "yes")),
+    # Full computer control (opt-in): see the screen, click, type
+    "screenshot": lambda: __import__("computer").screenshot(),
+    "click": lambda x, y, button="left", clicks=1: __import__("computer").click(x, y, button, clicks),
+    "type_text": lambda text: __import__("computer").type_text(text),
+    "press": lambda keys: __import__("computer").press(keys),
+    "scroll": lambda direction="down", amount=5: __import__("computer").scroll(direction, amount),
     # Your files folder (syllabi, schedules, notes): every system
     "list_files": lambda folder="": __import__("kairo_files").list_files(folder),
     "read_file": lambda name, search="": __import__("kairo_files").read_file(name, search),
@@ -65,7 +71,7 @@ TOOLS = {
     "mail_send": lambda to, subject, body, account="": mac("mac_mail").mail_send(to, subject, body, account),
 }
 LISTS = {"email_ids"}
-INTS = {"max_results", "days_ahead", "limit"}
+INTS = {"max_results", "days_ahead", "limit", "x", "y", "clicks", "amount"}
 BOOLS = {"unread_only", "all_unread"}
 
 
