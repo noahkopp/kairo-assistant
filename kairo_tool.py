@@ -37,6 +37,9 @@ TOOLS = {
     "list_google_events": lambda days_ahead=7: g().list_events(days_ahead),
     "create_google_event": lambda summary, start, end, description="", location="":
         g().create_event(summary, start, end, description, location),
+    # Your files folder (syllabi, schedules, notes): every system
+    "list_files": lambda folder="": __import__("kairo_files").list_files(folder),
+    "read_file": lambda name, search="": __import__("kairo_files").read_file(name, search),
     # Mac only: everything in the Calendar and Mail apps (Outlook, iCloud, school/work)
     "list_mac_events": lambda days_ahead=7: mac("mac_calendar").list_mac_events(days_ahead),
     "list_calendars": lambda: mac("mac_calendar").list_calendars(),

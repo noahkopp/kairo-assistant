@@ -55,6 +55,12 @@ values. Use \n for line breaks in an email body. It prints JSON. Examples (Mac/L
   ./kt count_emails query="is:unread"
   ./kt list_google_events days_ahead=7
   ./kt create_google_event summary="..." start=2026-12-01T15:00 end=2026-12-01T16:00
+Files the user saved for you (syllabi, schedules, notes) in Kairo's `files` folder:
+  ./kt list_files
+  ./kt read_file name="BIOL 1101 syllabus" search="exam"     (search= is optional)
+  Check these for questions about classes, exams, grading, or deadlines, and combine them with the
+  calendars (a syllabus often lists exam dates that aren't on the calendar). If a file you need
+  isn't there, say so and ask the user to drop it in the files folder.
 Mac only (the Calendar and Mail apps, which include Outlook, iCloud, and school/work accounts):
   ./kt list_mac_events days_ahead=7
   ./kt list_calendars

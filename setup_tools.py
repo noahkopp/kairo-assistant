@@ -10,7 +10,8 @@ HERE = Path(__file__).resolve().parent
 SYSTEM = platform.system()          # "Darwin" (Mac), "Windows", or "Linux"
 LAUNCH = "kairo.cmd" if SYSTEM == "Windows" else "./kairo.command"
 
-# 1. Your memory file (private, stays on this Mac).
+# 1. Your memory file and files folder (private, stay on this computer).
+(HERE / "files").mkdir(exist_ok=True)
 if not (HERE / "memory.md").exists():
     shutil.copy(HERE / "memory.template.md", HERE / "memory.md")
 

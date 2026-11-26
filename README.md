@@ -57,6 +57,8 @@ The first time you talk to it, Kairo asks a few questions to get to know you.
 
 **On Windows or Linux:** to see an Outlook or school calendar, subscribe to it in Google Calendar (Other calendars → From URL).
 
+**Your files:** put syllabi, schedules, or notes (PDF, Word, or text) in the `files` folder inside `kairo-assistant`, and Kairo can read and search them.
+
 Kairo saves facts about you, and lessons from your corrections, in `memory.md`. That file stays on your computer.
 
 ## Privacy
